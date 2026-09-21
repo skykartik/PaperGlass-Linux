@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""PaperGlass launcher.
+
+`paperglass ctl ...` is answered here with the standard library only, so a key binding reacts at once
+without loading Qt. Everything else starts the app.
+"""
+import os
+import socket
+import sys
+
+
+def _socket_path():
+    return os.path.join(os.environ.get("XDG_RUNTIME_DIR") or "/tmp", f"paperglass-{os.getuid()}.sock")
+
+
+def _ctl(args):
+    cmd = args[0] if args else "status"
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(1.5)
+        s.connect(_socket_path())
+        s.sendall((cmd + "\n").encode())
+        reply = s.recv(512).decode().strip()
+        s.close()
+    except OSError:
+        print("PaperGlass is not running.", file=sys.stderr)
+        return 1
+    print(reply)
+    return 0 if reply.startswith("ok") else 1
+
+
+def _find_lib():
+    here = os.path.dirname(os.path.realpath(__file__))
+    for d in (here, os.path.join(here, "..", "lib", "paperglass"), "/usr/lib/paperglass"):
+        if os.path.exists(os.path.join(d, "paperglass.py")):
+            return os.path.normpath(d)
+    return None
+
+
+if __name__ == "__main__":
+    if sys.argv[1:2] == ["ctl"]:
+        sys.exit(_ctl(sys.argv[2:]))
+    lib = _find_lib()
+    if not lib:
+        print("PaperGlass is not installed correctly: paperglass.py was not found.", file=sys.stderr)
+        sys.exit(1)
+    sys.path.insert(0, lib)
+    try:
+        import paperglass
+    except ModuleNotFoundError as exc:
+        if "PySide6" in str(exc):
+            print("PySide6 is missing. On Arch Linux: sudo pacman -S pyside6 qt6-wayland", file=sys.stderr)
+            sys.exit(1)
+        raise
+    sys.exit(paperglass.main())

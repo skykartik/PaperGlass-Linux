@@ -1,0 +1,37 @@
+# Maintainer: skykartik <https://github.com/skykartik>
+pkgname=paperglass-git
+pkgver=r0.0
+pkgrel=1
+pkgdesc='Make your whole screen look like e-ink paper (git version)'
+arch=('any')
+url='https://github.com/skykartik/PaperGlass-Linux'
+license=('MIT')
+depends=('python' 'pyside6' 'qt6-wayland')
+makedepends=('git')
+optdepends=('hyprland: full e-ink effect (grayscale, grain, lamp, flash)'
+            'libpulse: sound cues through paplay'
+            'pipewire: sound cues through pw-play'
+            'xorg-xprop: app exceptions and compositor detection on X11'
+            'noto-fonts-emoji: tab icons in the window')
+provides=('paperglass')
+conflicts=('paperglass')
+_repo=PaperGlass-Linux
+source=("git+$url.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/$_repo"
+  printf 'r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+  cd "$srcdir/$_repo"
+  install -Dm755 bin/paperglass "$pkgdir/usr/bin/paperglass"
+  sed -i '1s|.*|#!/usr/bin/python|' "$pkgdir/usr/bin/paperglass"
+  install -Dm644 paperglass.py "$pkgdir/usr/lib/paperglass/paperglass.py"
+  install -Dm644 packaging/paperglass.desktop "$pkgdir/usr/share/applications/paperglass.desktop"
+  install -Dm644 assets/logo.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/paperglass.svg"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/paperglass/LICENSE"
+  install -Dm644 PRIVACY.md "$pkgdir/usr/share/doc/paperglass/PRIVACY.md"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/paperglass/README.md"
+}

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=PaperGlass
+GenericName=E-ink screen filter
+Comment=Make your whole screen look like e-ink paper
+Exec=paperglass
+Icon=paperglass
+Terminal=false
+Categories=Utility;Settings;
+Keywords=eink;e-ink;paper;grayscale;night;lamp;
+StartupWMClass=paperglass
